@@ -1,6 +1,7 @@
 var express = require("express");
 var router = express.Router();
-const Ploblem = require("../model/Ploblem");
+const Problem = require("../model/Problem");
+const User = require("../model/User");
 const Math = require("math");
 /* GET users listing. */
 
@@ -9,8 +10,10 @@ const Math = require("math");
 router.get("/:level?", function (req, res, next) {
   const user1 = req.body.user1;
   const user2 = req.body.user2;
-  Ploblem.find({ level: req.params.level }).then((data) => {
-    const ploblems = data.filter((e) => {
+  console.log(req.params.level);
+  Problem.find({ level: req.params.level }).then((data) => {
+    // console.log(data);
+    const problems = data.filter((e) => {
       //key : 유저가 푼 문제들과 겹치는 문제 제거
       var key = 1;
       //key2 : 알고리즘 선택한 문제만 출제
@@ -18,7 +21,7 @@ router.get("/:level?", function (req, res, next) {
       //   console.log(e);
       User.findOne({ handle: user1 }).then((userdata) => {
         for (i in userdata.solvedProblemsList) {
-          if (userdata.solvedProblemsList[i] === e.ploblemId) {
+          if (userdata.solvedProblemsList[i] === e.problemId) {
             key = 0;
           }
         }
@@ -26,7 +29,7 @@ router.get("/:level?", function (req, res, next) {
 
       User.findOne({ handle: user1 }).then((userdata) => {
         for (i in userdata.solvedProblemsList) {
-          if (userdata.solvedProblemsList[i] === e.ploblemId) {
+          if (userdata.solvedProblemsList[i] === e.problemId) {
             key = 0;
           }
         }
@@ -45,14 +48,12 @@ router.get("/:level?", function (req, res, next) {
       } else {
         return false;
       }
-      // console.log(ploblems);
     });
-    setTimeout(() => {
-      //   console.log(ploblems);
-    }, 1000);
+    setTimeout(() => {}, 1000);
 
-    const index = Math.floor(Math.random() * ploblems.length);
-    res.json(ploblems[index]);
+    const index = Math.floor(Math.random() * problems.length);
+    console.log(problems[index]);
+    res.json(problems[index]);
   });
 });
 

@@ -4,6 +4,63 @@ let User = require("../model/User");
 const cheerio = require("cheerio");
 const axios = require("axios");
 
+async function getSolvedacUserData(USER_ID) {
+  try {
+    let response = await fetch(
+      `https://api-py.vercel.app/?r=https://solved.ac/api/v3/user/show?handle=${USER_ID}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    let data = await response.json();
+    console.log(data);
+
+    // 만약 사용자 정보가 없을 경우 에러를 throw하여 잡습니다.
+    if (response.status === 404 || !data || data.error) {
+      throw new Error("User not found");
+    }
+    return data;
+  } catch (error) {
+    // 에러를 콘솔에 출력하고 호출자에게 반환합니다.
+    console.error("Error fetching user data:", error.message);
+    // throw error;
+    return null;
+  }
+}
+
+async function getUserSolvedProblems(USER_ID) {
+  const headers = {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+  };
+
+  await axios
+    .get(`https://www.acmicpc.net/user/${USER_ID}`, { headers })
+    .then((response) => {
+      // 요청 성공 시 처리할 로직
+      const $ = cheerio.load(response.data);
+      const result = Promise.all(
+        $("div.problem-list a")
+          .map((i, elem) => {
+            const problemNumber = $(elem).text();
+            return problemNumber;
+          })
+          .get()
+      );
+      console.log(result);
+      return result;
+    })
+    .catch((error) => {
+      // 요청 실패 시 처리할 로직
+      // console.error(error);
+      return null;
+    });
+}
+
 /* POST: 백준 유저 정보 생성 */
 // router.post("/:userid", function (req, res, next) {
 //   getSolvedacUserData(req.params.userid).then((user) => {
@@ -33,11 +90,13 @@ router.post("/:userid", function (req, res, next) {
         res.json(null);
         return;
       }
-      return user;
+      console.log(user);
+      // return user;
     })
-    .then((user) => {
-      getUserSolvedProblems(req.params.userid)
+    .then(async (user) => {
+      await getUserSolvedProblems(req.params.userid)
         .then((solvedProblemsList) => {
+          console.log(solvedProblemsList);
           if (!solvedProblemsList) {
             // 사용자가 푼 문제 정보 없을 경우 null을 응답
             console.log("사용자가 푼 문제 정보가 없습니다.");
@@ -104,58 +163,3 @@ module.exports = router;
 //   console.log(data);
 //   return data;
 // }
-
-async function getSolvedacUserData(USER_ID) {
-  try {
-    let response = await fetch(
-      `https://api-py.vercel.app/?r=https://solved.ac/api/v3/user/show?handle=${USER_ID}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    let data = await response.json();
-    console.log(data);
-
-    // 만약 사용자 정보가 없을 경우 에러를 throw하여 잡습니다.
-    if (response.status === 404 || !data || data.error) {
-      throw new Error("User not found");
-    }
-    return data;
-  } catch (error) {
-    // 에러를 콘솔에 출력하고 호출자에게 반환합니다.
-    console.error("Error fetching user data:", error.message);
-    // throw error;
-    return null;
-  }
-}
-
-async function getUserSolvedProblems(USER_ID) {
-  const headers = {
-    "User-Agent":
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-  };
-
-  axios
-    .get(`https://www.acmicpc.net/user/${USER_ID}`, { headers })
-    .then((response) => {
-      // 요청 성공 시 처리할 로직
-      const $ = cheerio.load(response.data);
-      const result = $("div.problem-list a")
-        .map((i, elem) => {
-          const problemNumber = $(elem).text();
-          return problemNumber;
-        })
-        .get();
-      // console.log(result);
-      return result;
-    })
-    .catch((error) => {
-      // 요청 실패 시 처리할 로직
-      // console.error(error);
-      return null;
-    });
-}
