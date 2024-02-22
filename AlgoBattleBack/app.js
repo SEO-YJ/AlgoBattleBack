@@ -153,7 +153,7 @@ app.use(function (err, req, res, next) {
 //   console.log(`Server listening on port 4000`);
 // });
 
-httpServer.listen(4000);
+httpServer.listen(80);
 
 // const PORT = process.env.PORT || 4000;
 // server.listen(PORT, () => {
