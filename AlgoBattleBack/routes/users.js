@@ -1,6 +1,8 @@
 var express = require("express");
 var router = express.Router();
 let User = require("../model/User");
+const cheerio = require("cheerio");
+const axios = require("axios");
 
 /* POST: 백준 유저 정보 생성 */
 // router.post("/:userid", function (req, res, next) {
@@ -22,51 +24,66 @@ let User = require("../model/User");
 /* POST: 백준 유저 정보 생성 또는 업데이트 */
 router.post("/:userid", function (req, res, next) {
   // getSolvedacUserData 함수는 해당 userid의 사용자 정보를 반환하는 함수로 가정합니다.
-  getSolvedacUserData(req.params.userid).then((user) => {
-    // 사용자가 없을 경우 null로 응답
-    if (!user) {
-      // 사용자 정보가 없을 경우 null을 응답
-      console.log("사용자 정보가 없습니다.");
-      res.json(null);
-      return;
-    }
-
-    // 사용자 정보 객체 생성
-    const userData = {
-      handle: user.handle,
-      tier: user.tier,
-      solvedCount: user.solvedCount,
-    };
-
-    // 해당 userid로 이미 데이터가 존재하는지 확인
-    User.findOne({ handle: req.params.userid }).then((existingUser) => {
-      if (existingUser) {
-        // 이미 데이터가 존재한다면 업데이트
-        User.findOneAndUpdate(
-          { handle: req.params.userid },
-          userData,
-          { new: true } // 업데이트된 데이터를 반환하도록 설정
-        )
-          .then((updatedUser) => {
-            console.log("사용자 정보 업데이트");
-            res.json(updatedUser); // 업데이트된 사용자 정보 반환
-          })
-          .catch((err) => {
-            next(err); // 오류 발생 시 다음 미들웨어에 전달
-          });
-      } else {
-        // 데이터가 존재하지 않는다면 새로 생성
-        User.create(userData)
-          .then((newUser) => {
-            console.log("사용자 새로 생성");
-            res.json(newUser); // 새로 생성된 사용자 정보 반환
-          })
-          .catch((err) => {
-            next(err); // 오류 발생 시 다음 미들웨어에 전달
-          });
+  getSolvedacUserData(req.params.userid)
+    .then((user) => {
+      // 사용자가 없을 경우 null로 응답
+      if (!user) {
+        // 사용자 정보가 없을 경우 null을 응답
+        console.log("사용자 정보가 없습니다.");
+        res.json(null);
+        return;
       }
+      return user;
+    })
+    .then((user) => {
+      getUserSolvedProblems(req.params.userid)
+        .then((solvedProblemsList) => {
+          if (!solvedProblemsList) {
+            // 사용자가 푼 문제 정보 없을 경우 null을 응답
+            console.log("사용자가 푼 문제 정보가 없습니다.");
+            res.json(null);
+            return;
+          }
+          // 사용자 정보 객체 생성
+          const userData = {
+            handle: user.handle,
+            tier: user.tier,
+            solvedCount: user.solvedCount,
+            solvedProblemsList,
+          };
+          return userData;
+        })
+        .then((userData) => {
+          // 해당 userid로 이미 데이터가 존재하는지 확인
+          User.findOne({ handle: req.params.userid }).then((existingUser) => {
+            if (existingUser) {
+              // 이미 데이터가 존재한다면 업데이트
+              User.findOneAndUpdate(
+                { handle: req.params.userid },
+                userData,
+                { new: true } // 업데이트된 데이터를 반환하도록 설정
+              )
+                .then((updatedUser) => {
+                  console.log("사용자 정보 업데이트");
+                  res.json(updatedUser); // 업데이트된 사용자 정보 반환
+                })
+                .catch((err) => {
+                  next(err); // 오류 발생 시 다음 미들웨어에 전달
+                });
+            } else {
+              // 데이터가 존재하지 않는다면 새로 생성
+              User.create(userData)
+                .then((newUser) => {
+                  console.log("사용자 새로 생성");
+                  res.json(newUser); // 새로 생성된 사용자 정보 반환
+                })
+                .catch((err) => {
+                  next(err); // 오류 발생 시 다음 미들웨어에 전달
+                });
+            }
+          });
+        });
     });
-  });
 });
 
 module.exports = router;
@@ -114,4 +131,31 @@ async function getSolvedacUserData(USER_ID) {
     // throw error;
     return null;
   }
+}
+
+async function getUserSolvedProblems(USER_ID) {
+  const headers = {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+  };
+
+  axios
+    .get(`https://www.acmicpc.net/user/${USER_ID}`, { headers })
+    .then((response) => {
+      // 요청 성공 시 처리할 로직
+      const $ = cheerio.load(response.data);
+      const result = $("div.problem-list a")
+        .map((i, elem) => {
+          const problemNumber = $(elem).text();
+          return problemNumber;
+        })
+        .get();
+      // console.log(result);
+      return result;
+    })
+    .catch((error) => {
+      // 요청 실패 시 처리할 로직
+      // console.error(error);
+      return null;
+    });
 }

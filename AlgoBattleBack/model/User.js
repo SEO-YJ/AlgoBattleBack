@@ -19,6 +19,10 @@ const userSchema = new mongoose.Schema({
   loseCount: {
     type: Number,
   },
+  solvedProblemsList: {
+    type: [],
+    required: true,
+  },
 });
 
 // 2. 스키마 형식에 맞는 컬렉션 생성
