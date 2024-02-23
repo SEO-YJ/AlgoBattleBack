@@ -108,6 +108,8 @@ async function getUserSolvedProblems(USER_ID) {
   }
 }
 
+
+
 //// 이전 콜백으로 작성하여
 //// 두 함수가 데이터를 가져오기 전에 에러 발생
 //// Promise - await로 해결
