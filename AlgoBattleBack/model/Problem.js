@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const ProblemSchema = new mongoose.Schema({
   problem: String,
   problemId: Number,
+  ploblemId: Number,
   level: Number,
   aliases: [{ type: String }],
 });
