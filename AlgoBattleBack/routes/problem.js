@@ -23,8 +23,10 @@ async function getKey(userid) {
 router.get("/:level?", async function (req, res, next) {
   const user1 = req.body.user1;
   const user2 = req.body.user2;
-
-  var key3 = await Promise.all([getKey(user1), getKey(user2)]);
+  var key3 = 0;
+  if (user1 && user2) {
+    key3 = await Promise.all([getKey(user1), getKey(user2)]);
+  }
   // console.log(req.params.level);
   Problem.find({ level: req.params.level }).then(async (data) => {
     // console.log(data);
@@ -35,19 +37,20 @@ router.get("/:level?", async function (req, res, next) {
       //key2 : 알고리즘 선택한 문제만 출제
       var key2 = 0;
       //   console.log(e);
-
-      key3[0].solvedProblemsList.map((data) => {
-        if (e.ploblemId == data) {
-          console.log(data);
-          key = 0;
-        }
-      });
-      key3[1].solvedProblemsList.map((data) => {
-        if (e.ploblemId == data) {
-          console.log(data);
-          key = 0;
-        }
-      });
+      if (key3 !== 0) {
+        key3[0].solvedProblemsList.map((data) => {
+          if (e.ploblemId == data) {
+            console.log(data);
+            key = 0;
+          }
+        });
+        key3[1].solvedProblemsList.map((data) => {
+          if (e.ploblemId == data) {
+            console.log(data);
+            key = 0;
+          }
+        });
+      }
       if (req.query.aliase) {
         for (aliase in e.aliases) {
           if (req.query.aliase === e.aliases[aliase]) {
