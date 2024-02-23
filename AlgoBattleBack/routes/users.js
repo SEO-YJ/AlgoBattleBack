@@ -4,6 +4,39 @@ let User = require("../model/User");
 const cheerio = require("cheerio");
 const axios = require("axios");
 
+/* GET: 유저 승수 랭킹 조회 */
+/* GET: 유저 랭킹 조회 */
+router.get("/ranking", (req, res, next) => {
+  User.find() // 모든 사용자 가져오기
+    .sort({ winCount: -1 }) // winCount 기준으로 내림차순 정렬
+    .then((users) => {
+      if (!users || users.length === 0) {
+        return res.status(404).json({ error: "No users found" });
+      }
+      res.json(users);
+    })
+    .catch((err) => {
+      console.log(err);
+      next(err);
+    });
+});
+
+/* GET: 백준 유저 정보 조회 */
+router.get("/:userid", (req, res, next) => {
+  const { userid } = req.params;
+  User.findOne({ handle: userid }) // 이메일 주소로 검색
+    .then((user) => {
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      res.json(user);
+    })
+    .catch((err) => {
+      console.log(err);
+      next(err);
+    });
+});
+
 /* POST: 백준 유저 정보 생성 또는 업데이트 */
 router.post("/:userid", async function (req, res, next) {
   try {
@@ -22,7 +55,17 @@ router.post("/:userid", async function (req, res, next) {
       return;
     }
 
-    // 사용자 정보 객체 생성
+    // 사용자 새로 생성할 경우
+    const newUserData = {
+      handle: userInfo.handle,
+      tier: userInfo.tier,
+      solvedCount: userInfo.solvedCount,
+      solvedProblemsList,
+      winCount: 0,
+      loseCount: 0,
+    };
+
+    // 사용자 업데이트 할 경우
     const userData = {
       handle: userInfo.handle,
       tier: userInfo.tier,
@@ -44,7 +87,7 @@ router.post("/:userid", async function (req, res, next) {
       res.json(updatedUser);
     } else {
       // 데이터가 존재하지 않는다면 새로 생성
-      const newUser = await User.create(userData);
+      const newUser = await User.create(newUserData);
       console.log("사용자 새로 생성");
       res.json(newUser);
     }

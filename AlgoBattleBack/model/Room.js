@@ -33,8 +33,15 @@ const roomSchema = new mongoose.Schema({
     },
   },
   player2: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    handle: {
+      type: String,
+      required: true,
+    },
   },
 });
 

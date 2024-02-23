@@ -2,7 +2,7 @@ const { Server } = require("socket.io");
 
 const io = new Server({
   cors: {
-    origin: "http://localhost:3000",
+    origin: "http://localhost:3001",
     methods: ["GET", "POST"],
   },
 });
@@ -11,9 +11,9 @@ const io = new Server({
 let gameRooms = [];
 
 // 클라이언트에게 방 목록 전송
-function sendGameRooms() {
-  io.emit("gameRooms", gameRooms);
-}
+// function sendGameRooms() {
+//   io.emit("gameRooms", gameRooms);
+// }
 
 // 새로운 게임 방 생성
 function createGameRoom(
@@ -32,13 +32,15 @@ function createGameRoom(
     player2: null,
   };
   gameRooms.push(newRoom);
-  sendGameRooms();
+  // sendGameRooms();
+  io.emit("gameRooms", gameRooms);
 }
 
 // 게임 방 삭제
 function deleteGameRoom(roomIndex) {
   gameRooms.splice(roomIndex, 1);
-  sendGameRooms();
+  // sendGameRooms();
+  io.emit("gameRooms", gameRooms);
 }
 
 io.on("connection", (socket) => {
@@ -70,7 +72,7 @@ io.on("connection", (socket) => {
   });
 
   // 처음 연결되었을 때 방 목록 전송
-  sendGameRooms();
+  io.emit("gameRooms", gameRooms);
 });
 ////
 
