@@ -3,15 +3,15 @@ var router = express.Router();
 let Room = require("../model/Room");
 let User = require("../model/User");
 
-router.post("/:player1_id", function (req, res, next) {
+router.post("/:player1_name", function (req, res, next) {
   // 세션에서 가져온 방장의 MongoDB ID
-  const player1_id = req.params.player1_id;
+  const player1_nickName = req.params.player1_name;
 
   // 요청 바디에서 필요한 값을 가져옴
   const { name, password, level, algorithm } = req.body;
 
   // 방장의 MongoDB ID를 사용하여 사용자 정보를 조회
-  User.findById(player1_id)
+  User.findOne({ nickName: player1_nickName })
     .then((user) => {
       // 사용자가 없을 경우 null로 응답
       if (!user) {
