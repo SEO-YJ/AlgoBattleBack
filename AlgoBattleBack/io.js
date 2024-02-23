@@ -1,5 +1,5 @@
 const { Server } = require("socket.io");
-
+const Room = require("./model/Room");
 const io = new Server({
   cors: {
     origin: "http://localhost:3001",
@@ -77,3 +77,37 @@ io.on("connection", (socket) => {
 ////
 
 module.exports = io;
+
+// user가 방에 들어갈 경우
+function goRoom(roomName, userId) {
+  User.find({ handle: userId }).then((data) => {
+    const user_id = data._id;
+    Room.findOneAndUpdate({ name: roomName }, { player2: user_id }).then(
+      (data) => {
+        //방 업데이트 정보 보내기
+      }
+    );
+  });
+}
+//user1이 방에서 나갈경우
+function outRoom1(roobName) {
+  Room.findOneAndUpdate({ name: roomName }, { status: "방종료" });
+}
+
+//user2가 방에서 나갈경우
+function outRoom2(roomName, userId) {
+  Room.findOneAndUpdate({ name: roomName }, { player2: null });
+}
+//룸 정보 다 보내기
+function getRooms() {
+  Room.find().then((data) => {
+    //룸 정보다 보내기
+  });
+}
+
+//
+function getRoom(roomName) {
+  Room.findOne({ name: roomName }).then((data) => {
+    //룸 정보 보내기
+  });
+}

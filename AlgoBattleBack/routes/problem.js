@@ -23,7 +23,8 @@ async function getKey(userid) {
 router.get("/:level?", async function (req, res, next) {
   const user1 = req.body.user1;
   const user2 = req.body.user2;
-  var key3 = 0;
+  // console.log(req.query.eliase);
+  // console.log(user1);
   if (user1 && user2) {
     key3 = await Promise.all([getKey(user1), getKey(user2)]);
   }
@@ -36,33 +37,39 @@ router.get("/:level?", async function (req, res, next) {
       var key = 1;
       //key2 : 알고리즘 선택한 문제만 출제
       var key2 = 0;
+      // console.log(key3);
       //   console.log(e);
-      if (key3 !== 0) {
+      if (user1 && user2) {
         key3[0].solvedProblemsList.map((data) => {
           if (e.ploblemId == data) {
-            console.log(data);
+            // console.log(data);
             key = 0;
           }
         });
         key3[1].solvedProblemsList.map((data) => {
           if (e.ploblemId == data) {
-            console.log(data);
+            // console.log(data);
             key = 0;
           }
         });
       }
-      if (req.query.aliase) {
-        for (aliase in e.aliases) {
-          if (req.query.aliase === e.aliases[aliase]) {
+      // console.log(typeof req.query.eliase);
+      // if()
+
+      if (typeof req.query.eliase === "string") {
+        console.log(e.aliases);
+        for (eliase in e.aliases) {
+          console.log(e.aliases[eliase]);
+          if (req.query.eliase === e.aliases[eliase]) {
             key2 = 1;
           }
         }
       }
-      console.log(key);
-      console.log(key === 1 && (key2 === 1 || !req.query.aliase));
+      // console.log(key2);
+      // console.log(key === 1 && (key2 === 0 || !req.query.eliase));
       // return key === 1 && (key2 === 1 || !req.query.aliase);
-      if (key === 1 && (key2 === 1 || !req.query.aliase)) {
-        problem2.push(data);
+      if (key === 1 && (key2 === 1 || typeof req.query.eliase !== "string")) {
+        problem2.push(e);
         return true;
       } else {
         return false;
@@ -71,8 +78,8 @@ router.get("/:level?", async function (req, res, next) {
 
     console.log(problem2.length);
     const index = Math.floor(Math.random() * problem2.length);
-    console.log(problem2[0][index]);
-    res.json(problem2[0][index]);
+    console.log(index);
+    res.json(problem2[index]);
   });
 });
 
