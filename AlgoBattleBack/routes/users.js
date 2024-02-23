@@ -32,7 +32,7 @@ router.post("/:userid", async function (req, res, next) {
 
     // 해당 userid로 이미 데이터가 존재하는지 확인
     const existingUser = await User.findOne({ handle: req.params.userid });
-
+    console.log(existingUser);
     if (existingUser) {
       // 이미 데이터가 존재한다면 업데이트
       const updatedUser = await User.findOneAndUpdate(
@@ -44,7 +44,7 @@ router.post("/:userid", async function (req, res, next) {
       res.json(updatedUser);
     } else {
       // 데이터가 존재하지 않는다면 새로 생성
-      const newUser = await User.create(userDataObject);
+      const newUser = await User.create(userData);
       console.log("사용자 새로 생성");
       res.json(newUser);
     }

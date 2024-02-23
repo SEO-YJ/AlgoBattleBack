@@ -24,6 +24,9 @@ mongoose
   })
   .catch((err) => console.log(err));
 
+//NOTE: Socket.io 서비스 시작
+// 1. HTTP 모듈이나 express를 이용하여 HTTP 서버를 준비
+// 여기서느
 var app = express();
 
 //// Web Socket 처리
