@@ -13,6 +13,7 @@ var logger = require("morgan");
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var roomRouter = require("./routes/room");
+var problemRouter = require("./routes/problem");
 const MONGO_HOST = process.env.MONGO_HOST;
 mongoose
   .connect(MONGO_HOST, {
@@ -33,8 +34,14 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
+<<<<<<< HEAD
 app.use("/api/users", usersRouter);
 app.use("/api/room", roomRouter);
+=======
+app.use("/users", usersRouter);
+app.use("/room", roomRouter);
+app.use("/problem", problemRouter);
+>>>>>>> 1a7f4d304a44e881c2778511208cd32b4bbea291
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
