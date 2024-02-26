@@ -49,28 +49,34 @@ io.on("connection", (socket) => {
   console.log("New client connected");
 
   //getsRooms
-  socket.on("getsRooms", () => {
+  socket.on("getRooms", () => {
     Room.find({}).then((data) => {
-      console.log(data);
+      // console.log(data);
       socket.emit("getsRooms", data);
     });
   });
+
   socket.on("getRoom", ({ roomId }) => {
     Room.findById(roomId).then((data) => {
       socket.emit("getRoom", data);
     });
   });
-  socket.on("joinRoom", ({ roomId, roomPassword, player2_Id }) => {
+
+  socket.on("joinRoom", ({ roomId, roomPassword, player2_Id, handle }) => {
     Room.findById(roomId).then((data) => {
       if (data.password == roomPassword || !data.password) {
+        // console.log(data);
         Room.findById(roomId)
-          .then((data) => {
-            if (!data.player2) {
+          .then((data2) => {
+            if(data2.player2.toObject() === null) {
               Room.findByIdAndUpdate(roomId, {
-                player2: player2_Id,
+                player2: {
+                  _id : player2_Id,
+                  handle : handle
+                },
                 status: "준비중",
               }).then((data) => {
-                Room.find().then((data) => {
+                Room.find({}).then((data) => {
                   io.emit("getsRooms", data);
                 });
               });
