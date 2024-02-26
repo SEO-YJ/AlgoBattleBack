@@ -37,11 +37,11 @@ const roomSchema = new mongoose.Schema(
       _id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true,
+        // required: true,
       },
       handle: {
         type: String,
-        required: true,
+        // required: true,
       },
     },
   },

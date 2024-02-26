@@ -4,7 +4,7 @@ const User = require("./model/User");
 const { disconnect } = require("mongoose");
 const io = new Server({
   cors: {
-    origin: "http://localhost:3001",
+    origin: "http://localhost:5173",
     methods: ["GET", "POST"],
   },
 });
@@ -50,7 +50,7 @@ io.on("connection", (socket) => {
 
   socket.on("joinRoom", ({ roomId, roomPassword, player2_Id }) => {
     Room.findById(roomId).then((data) => {
-      if (data.roomPassword == roomPassword || !data.roomPassword) {
+      if (data.password == roomPassword || !data.password) {
         Room.findById(roomId)
           .then((data) => {
             if (!data.player2) {
@@ -80,7 +80,7 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("outRoom1", { room });
+  // socket.on("outRoom1", { room });
   socket.on("outRoom2", ({ roomId, player2Id }) => {
     Room.findOneAndUpdate({ _id: roomId }, { player2: null })
       .then((data) => {
@@ -95,8 +95,9 @@ io.on("connection", (socket) => {
   // 클라이언트가 방 생성 요청을 보낼 때
   socket.on(
     "createRoom",
-    ({ player1_id, name, password, level, algorithm }) => {
-      User.findbyId(player1_id)
+    ({player1_id, name, password, level, algorithm}) => {
+      // console.log(player1_id);
+      User.findById(player1_id)
         .then((user) => {
           // 사용자가 없을 경우 null로 응답
           if (!user) {
@@ -121,12 +122,15 @@ io.on("connection", (socket) => {
             player2: null,
           };
 
+          console.log(newRoomData)
+
           // 새로운 게임 데이터 생성
           Room.create(newRoomData)
             .then((room) => {
               // 게임 데이터 생성 완료 후 방 정보를 반환
               socket.join(room._id);
-              res.json(room);
+              // res.json(room);
+              console.log(room);
             })
             .catch((err) => {
               next(err);
