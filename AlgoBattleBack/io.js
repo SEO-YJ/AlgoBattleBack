@@ -63,6 +63,7 @@ io.on("connection", (socket) => {
                 }
               );
               socket.join(roomId);
+              io.to(roomId).emit(data._id);
             } else {
               io.emit("gameRoom", "방이 꽉찼습니다.");
             }
@@ -80,7 +81,7 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("outRoom1", { room });
+  // socket.on("outRoom1", { room });
   socket.on("outRoom2", ({ roomId, player2Id }) => {
     Room.findOneAndUpdate({ _id: roomId }, { player2: null })
       .then((data) => {
@@ -109,6 +110,7 @@ io.on("connection", (socket) => {
             _id: user._id,
             handle: user.handle,
           };
+          ``;
 
           // 요청 바디에서 가져온 값 또는 기본값 설정
           const newRoomData = {
@@ -127,6 +129,9 @@ io.on("connection", (socket) => {
               // 게임 데이터 생성 완료 후 방 정보를 반환
               socket.join(room._id);
               res.json(room);
+              Room.find({}).then((data) => {
+                io.emit("gameRooms", data);
+              });
             })
             .catch((err) => {
               next(err);
