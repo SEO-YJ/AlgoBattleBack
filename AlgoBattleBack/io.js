@@ -47,7 +47,16 @@ function deleteGameRoom(roomIndex) {
 
 io.on("connection", (socket) => {
   console.log("New client connected");
-  socket.emit("getsRooms", Room.find({}));
+
+  //getsRooms
+  socket.on("getsRooms", () => {
+    Room.find({}).then((data) => {
+      console.log(data);
+      socket.emit("getsRooms", data);
+    });
+  });
+
+  //
   socket.on("joinRoom", ({ roomId, roomPassword, player2_Id }) => {
     Room.findById(roomId).then((data) => {
       if (data.password == roomPassword || !data.password) {
@@ -56,16 +65,14 @@ io.on("connection", (socket) => {
             if (!data.player2) {
               Room.findByIdAndUpdate(roomId, { player2: player2_Id }).then(
                 (data) => {
-                  io.emit("gameRoom", data);
                   Room.find().then((data) => {
-                    io.emit("gameRooms", data);
+                    io.emit("getsRooms", data);
                   });
                 }
               );
               socket.join(roomId);
-              io.to(roomId).emit(data._id);
             } else {
-              io.emit("gameRoom", "방이 꽉찼습니다.");
+              socket.emit("");
             }
             //방 업데이트 정보 보내기
           })
@@ -135,9 +142,11 @@ io.on("connection", (socket) => {
               socket.join(room._id);
               // res.json(room);
               Room.find({}).then((data) => {
-                io.emit("gameRooms", data);
+                console.log(data);
+                io.emit("getsRooms", data);
               });
-              console.log(room);
+              socket.join(room._id);
+              socket.emit("createRoom", room._id);
             })
             .catch((err) => {
               next(err);
@@ -152,17 +161,12 @@ io.on("connection", (socket) => {
   );
 
   // 클라이언트가 방 나가기 요청을 보낼 때
-  socket.on("leaveRoom", (roomIndex) => {
-    deleteGameRoom(roomIndex);
-  });
+  socket.on("leaveRoom", (roomIndex) => {});
 
   // 클라이언트가 연결을 끊을 때
   socket.on("disconnect", () => {
     console.log("Client disconnected");
   });
-
-  // 처음 연결되었을 때 방 목록 전송
-  io.emit("gameRooms", gameRooms);
 });
 ////
 
