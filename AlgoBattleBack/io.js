@@ -1,5 +1,7 @@
 const { Server } = require("socket.io");
 const Room = require("./model/Room");
+const User = require("./model/User");
+const { disconnect } = require("mongoose");
 const io = new Server({
   cors: {
     origin: "http://localhost:3001",
@@ -46,19 +48,96 @@ function deleteGameRoom(roomIndex) {
 io.on("connection", (socket) => {
   console.log("New client connected");
 
+  socket.on("joinRoom", ({ roomId, roomPassword, player2_Id }) => {
+    Room.findById(roomId).then((data) => {
+      if (data.roomPassword == roomPassword || !data.roomPassword) {
+        Room.findById(roomId)
+          .then((data) => {
+            if (!data.player2) {
+              Room.findByIdAndUpdate(roomId, { player2: player2_Id }).then(
+                (data) => {
+                  io.emit("gameRoom", data);
+                  Room.find().then((data) => {
+                    io.emit("gameRooms", data);
+                  });
+                }
+              );
+              socket.join(roomId);
+            } else {
+              io.emit("gameRoom", "방이 꽉찼습니다.");
+            }
+            //방 업데이트 정보 보내기
+          })
+          .catch((err) => {
+            console.log(err);
+            io.emit("gameRoom", err);
+          });
+        socket.emit("joinRoomreply", "방입장성공");
+      } else {
+        console.log("비밀번호 불일치");
+        socket.emit("joinRoomreply", "비밀번호 불일치");
+      }
+    });
+  });
+
+  socket.on("outRoom1", { room });
+  socket.on("outRoom2", ({ roomId, player2Id }) => {
+    Room.findOneAndUpdate({ _id: roomId }, { player2: null })
+      .then((data) => {
+        socket.on("disconnected", () => {
+          console.log("2 방 나가기 성공");
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
   // 클라이언트가 방 생성 요청을 보낼 때
   socket.on(
     "createRoom",
-    ({ roomName, roomPassword, roomLevel, roomAlgorithm, player1Id }) => {
-      createGameRoom(
-        roomName,
-        roomPassword,
-        roomLevel,
-        roomAlgorithm,
-        player1Id
-      );
-      console.log(gameRooms);
+    ({ player1_id, name, password, level, algorithm }) => {
+      User.findbyId(player1_id)
+        .then((user) => {
+          // 사용자가 없을 경우 null로 응답
+          if (!user) {
+            console.log("사용자 정보가 없습니다.");
+            res.send("사용자 정보가 없습니다.");
+            return;
+          }
+          // 사용자 정보 객체 생성
+          const player1Data = {
+            _id: user._id,
+            handle: user.handle,
+          };
+
+          // 요청 바디에서 가져온 값 또는 기본값 설정
+          const newRoomData = {
+            name: name,
+            password: password !== undefined ? password : null,
+            level: level,
+            algorithm: algorithm,
+            status: "게임전",
+            player1: player1Data, // 방장의 사용자 정보 객체를 저장
+            player2: null,
+          };
+
+          // 새로운 게임 데이터 생성
+          Room.create(newRoomData)
+            .then((room) => {
+              // 게임 데이터 생성 완료 후 방 정보를 반환
+              socket.join(room._id);
+              res.json(room);
+            })
+            .catch((err) => {
+              next(err);
+            });
+        })
+        .catch((err) => {
+          next(err);
+        });
     }
+
+    // socket.on("joinRoom")
   );
 
   // 클라이언트가 방 나가기 요청을 보낼 때
@@ -79,22 +158,21 @@ io.on("connection", (socket) => {
 module.exports = io;
 
 // user가 방에 들어갈 경우
-function goRoom(roomName, userId) {
-  User.find({ handle: userId })
+function joinRoom(roomId, playerId) {
+  const user_id = playerId;
+  Room.findById(roomId)
     .then((data) => {
-      const user_id = data._id;
-      Room.findOne({ name: roomName }).then((data) => {
-        if (!data.player2) {
-          Room.findOneAndUpdate({ name: roomName }, { player2: user_id }).then(
-            (data) => {
-              io.emit("gameRoom", data);
-            }
-          );
-        } else {
-          io.emit("gameRoom", "방이 꽉찼습니다.");
-        }
-        //방 업데이트 정보 보내기
-      });
+      if (!data.player2) {
+        Room.findByIdAndUpdate(roomId, { player2: user_id }).then((data) => {
+          io.emit("gameRoom", data);
+          Room.find().then((data) => {
+            io.emit("gameRooms", data);
+          });
+        });
+      } else {
+        io.emit("gameRoom", "방이 꽉찼습니다.");
+      }
+      //방 업데이트 정보 보내기
     })
     .catch((err) => {
       console.log(err);
@@ -117,12 +195,9 @@ function outRoom1(roobName) {
 //user2가 방에서 나갈경우
 function outRoom2(roomName, userId) {
   Room.findOneAndUpdate({ name: roomName }, { player2: null })
-    .then((data) => {
-      io.emit("gameRoom", data);
-    })
+    .then((data) => {})
     .catch((err) => {
       console.log(err);
-      io.emit("gameRoom", err);
     });
 }
 //룸 정보 다 보내기

@@ -111,6 +111,10 @@ function deleteGameRoom(roomIndex) {
 io.on("connection", (socket) => {
   console.log("New client connected");
 
+  socket.on("joinRomm", ({ roomID, roomPassword, playerId }) => {
+    console.log("joinroomsocket");
+  });
+
   // 클라이언트가 방 생성 요청을 보낼 때
   socket.on(
     "createRoom",

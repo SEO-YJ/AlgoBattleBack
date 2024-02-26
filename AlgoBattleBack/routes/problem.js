@@ -80,7 +80,8 @@ router.get("/:level?", async function (req, res, next) {
       console.log(problem2.length);
       const index = Math.floor(Math.random() * problem2.length);
       console.log(index);
-      res.json(problem2[index]);
+      if (problem2.length != 0) res.json(problem2[index]);
+      else res.send("문제 없음");
     });
   } catch (err) {
     console.log(err);
