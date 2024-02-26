@@ -56,7 +56,6 @@ io.on("connection", (socket) => {
     });
   });
 
-  //
   socket.on("joinRoom", ({ roomId, roomPassword, player2_Id }) => {
     Room.findById(roomId).then((data) => {
       if (data.password == roomPassword || !data.password) {
@@ -142,11 +141,10 @@ io.on("connection", (socket) => {
               socket.join(room._id);
               // res.json(room);
               Room.find({}).then((data) => {
-                console.log(data);
                 io.emit("getsRooms", data);
               });
-              socket.join(room._id);
-              socket.emit("createRoom", room._id);
+              console.log(room);
+              socket.emit("getRoomId", room._id);
             })
             .catch((err) => {
               next(err);
