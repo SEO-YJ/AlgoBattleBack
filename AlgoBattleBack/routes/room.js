@@ -3,6 +3,13 @@ var router = express.Router();
 let Room = require("../model/Room");
 let User = require("../model/User");
 
+router.get("/:roomId", function (req, res, next) {
+  const roomId = req.params.roomId;
+  Room.findById(roomId).then((data) => {
+    res.json(data);
+  });
+});
+
 router.post("/:player1_name", function (req, res, next) {
   // 세션에서 가져온 방장의 MongoDB ID
   const player1_nickName = req.params.player1_name;

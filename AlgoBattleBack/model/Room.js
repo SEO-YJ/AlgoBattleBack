@@ -20,7 +20,7 @@ const roomSchema = new mongoose.Schema(
     status: {
       type: String,
       require: true,
-      default: "게임전",
+      default: "대기중",
     },
     player1: {
       _id: {

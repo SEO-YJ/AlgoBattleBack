@@ -55,20 +55,25 @@ io.on("connection", (socket) => {
       socket.emit("getsRooms", data);
     });
   });
-
+  socket.on("getRoom", ({ roomId }) => {
+    Room.findById(roomId).then((data) => {
+      socket.emit("getRoom", data);
+    });
+  });
   socket.on("joinRoom", ({ roomId, roomPassword, player2_Id }) => {
     Room.findById(roomId).then((data) => {
       if (data.password == roomPassword || !data.password) {
         Room.findById(roomId)
           .then((data) => {
             if (!data.player2) {
-              Room.findByIdAndUpdate(roomId, { player2: player2_Id }).then(
-                (data) => {
-                  Room.find().then((data) => {
-                    io.emit("getsRooms", data);
-                  });
-                }
-              );
+              Room.findByIdAndUpdate(roomId, {
+                player2: player2_Id,
+                status: "준비중",
+              }).then((data) => {
+                Room.find().then((data) => {
+                  io.emit("getsRooms", data);
+                });
+              });
               socket.join(roomId);
             } else {
               socket.emit("");
