@@ -21,6 +21,30 @@ router.get("/ranking", (req, res, next) => {
     });
 });
 
+router.get("/ranking", (req, res, next) => {
+  User.find() // 모든 사용자 가져오기
+    .then((users) => {
+      if (!users || users.length === 0) {
+        return res.status(404).json({ error: "No users found" });
+      }
+
+      // 각 사용자의 승률 계산
+      users.forEach((user) => {
+        user.winRate = user.winCount / (user.winCount + user.loseCount);
+      });
+
+      // 승률 기준으로 내림차순 정렬
+      users.sort((a, b) => b.winRate - a.winRate);
+
+      res.json(users);
+    })
+    .catch((err) => {
+      console.log(err);
+      next(err);
+    });
+});
+
+
 /* GET: 백준 유저 정보 조회 */
 router.get("/:userid", (req, res, next) => {
   const { userid } = req.params;
@@ -150,8 +174,6 @@ async function getUserSolvedProblems(USER_ID) {
     return null;
   }
 }
-
-
 
 //// 이전 콜백으로 작성하여
 //// 두 함수가 데이터를 가져오기 전에 에러 발생

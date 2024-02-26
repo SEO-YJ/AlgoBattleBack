@@ -80,34 +80,73 @@ module.exports = io;
 
 // user가 방에 들어갈 경우
 function goRoom(roomName, userId) {
-  User.find({ handle: userId }).then((data) => {
-    const user_id = data._id;
-    Room.findOneAndUpdate({ name: roomName }, { player2: user_id }).then(
-      (data) => {
+  User.find({ handle: userId })
+    .then((data) => {
+      const user_id = data._id;
+      Room.findOne({ name: roomName }).then((data) => {
+        if (!data.player2) {
+          Room.findOneAndUpdate({ name: roomName }, { player2: user_id }).then(
+            (data) => {
+              io.emit("gameRoom", data);
+            }
+          );
+        } else {
+          io.emit("gameRoom", "방이 꽉찼습니다.");
+        }
         //방 업데이트 정보 보내기
-      }
-    );
-  });
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      io.emit("gameRoom", err);
+    });
 }
+
 //user1이 방에서 나갈경우
 function outRoom1(roobName) {
-  Room.findOneAndUpdate({ name: roomName }, { status: "방종료" });
+  Room.findOneAndUpdate({ name: roomName }, { status: "방종료" })
+    .then((data) => {
+      io.emit("gameRoom", data);
+    })
+    .catch((err) => {
+      console.log(err);
+      io.emit("gameRoom", err);
+    });
 }
 
 //user2가 방에서 나갈경우
 function outRoom2(roomName, userId) {
-  Room.findOneAndUpdate({ name: roomName }, { player2: null });
+  Room.findOneAndUpdate({ name: roomName }, { player2: null })
+    .then((data) => {
+      io.emit("gameRoom", data);
+    })
+    .catch((err) => {
+      console.log(err);
+      io.emit("gameRoom", err);
+    });
 }
 //룸 정보 다 보내기
 function getRooms() {
-  Room.find().then((data) => {
-    //룸 정보다 보내기
-  });
+  Room.find()
+    .then((data) => {
+      //룸 정보다 보내기
+      io.emit("gameRomms");
+    })
+    .catch((err) => {
+      console.log(err);
+      io.emit("gameRoom", err);
+    });
 }
 
 //
 function getRoom(roomName) {
-  Room.findOne({ name: roomName }).then((data) => {
-    //룸 정보 보내기
-  });
+  Room.findOne({ name: roomName })
+    .then((data) => {
+      //룸 정보 보내기
+      io.emit("gameRoom", data);
+    })
+    .catch((err) => {
+      console.log(err);
+      io.emit("gameRoom", err);
+    });
 }
