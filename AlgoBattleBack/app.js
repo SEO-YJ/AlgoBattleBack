@@ -6,6 +6,7 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
+const cors = require("cors");
 // socket 서버 import
 // const http = require("http");
 // const socketIo = require("socket.io");
@@ -26,6 +27,11 @@ mongoose
   .catch((err) => console.log(err));
 
 var app = express();
+app.use(
+  cors({
+    origin: '*',
+  })
+);
 
 app.use(logger("dev"));
 app.use(express.json());

@@ -44,7 +44,6 @@ router.get("/ranking", (req, res, next) => {
     });
 });
 
-
 /* GET: 백준 유저 정보 조회 */
 router.get("/:userid", (req, res, next) => {
   const { userid } = req.params;
@@ -120,7 +119,51 @@ router.post("/:userid", async function (req, res, next) {
   }
 });
 
+// express 라우터에서 사용자의 문제 풀이 상태를 반환하는 라우트 핸들러
+router.get("/:userid/solvedStatus", async (req, res, next) => {
+  const userId = req.params.userid;
+
+  try {
+    // MongoDB에서 사용자의 solvedList 배열 가져오기
+    const solvedListFromDB = await getUserSolvedListFromDB(userId);
+    if (!solvedListFromDB) {
+      res
+        .status(500)
+        .json({ error: "Error fetching user's solvedList from database" });
+      return;
+    }
+
+    // HTML 페이지에서 가져온 사용자의 solvedList 배열
+    const solvedListFromHTML = await getUserSolvedProblems(userId);
+    if (!solvedListFromHTML) {
+      res
+        .status(500)
+        .json({ error: "Error fetching user's solvedList from HTML page" });
+      return;
+    }
+
+    // 두 배열이 동일한지 확인
+    const isSame = arraysAreEqual(solvedListFromDB, solvedListFromHTML);
+
+    // 결과에 따라 적절한 메시지 반환
+    const result = isSame ? "틀렸습니다" : "맞았습니다";
+
+    res.status(200).json({ result });
+  } catch (error) {
+    console.error("Error:", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 module.exports = router;
+
+function arraysAreEqual(arr1, arr2) {
+  if (arr1.length !== arr2.length) return false;
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) return false;
+  }
+  return true;
+}
 
 // Solved AC -> User 데이터 가져오기
 async function getSolvedacUserData(USER_ID) {
@@ -171,6 +214,21 @@ async function getUserSolvedProblems(USER_ID) {
     return result;
   } catch (error) {
     console.error(error);
+    return null;
+  }
+}
+
+// MongoDB에서 사용자의 solvedList 배열 가져오기
+async function getUserSolvedListFromDB(userId) {
+  try {
+    const user = await User.findOne({ handle: userId });
+    if (!user) {
+      console.log("User not found in database");
+      return null;
+    }
+    return user.solvedProblemsList;
+  } catch (error) {
+    console.error("Error fetching user's solvedList from database:", error);
     return null;
   }
 }
