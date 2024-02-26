@@ -57,6 +57,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("getRoom", ({ roomId }) => {
+    //TODO 추후 삭제
+    // socket.join(roomId);
+
     Room.findById(roomId).then((data) => {
       socket.emit("getRoom", data);
     });
@@ -76,11 +79,12 @@ io.on("connection", (socket) => {
                 },
                 status: "준비중",
               }).then((data) => {
-                Room.find({}).then((data) => {
+                Room.find().then((data) => {
                   io.emit("getsRooms", data);
                 });
+                socket.join(roomId);
+                io.to(roomId).emit("getRoom", data);
               });
-              socket.join(roomId);
             } else {
               socket.emit("");
             }
@@ -113,8 +117,7 @@ io.on("connection", (socket) => {
   });
   // 클라이언트가 방 생성 요청을 보낼 때
 
-  socket.on(
-    "createRoom",
+  socket.on( "createRoom",
     ({ player1_id, name, password, level, algorithm }) => {
       // console.log(player1_id);
       User.findById(player1_id)
@@ -143,7 +146,7 @@ io.on("connection", (socket) => {
             player2: null,
           };
 
-          console.log(newRoomData);
+          // console.log(newRoomData);
 
           // 새로운 게임 데이터 생성
           Room.create(newRoomData)
@@ -176,6 +179,11 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("Client disconnected");
   });
+
+  socket.on("send_ready_data", (data) => {
+    // console.log(data);
+    io.to(data.roomId).emit("receive_ready_data", data)
+  })
 });
 ////
 
