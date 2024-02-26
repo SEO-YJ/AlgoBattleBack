@@ -47,7 +47,7 @@ function deleteGameRoom(roomIndex) {
 
 io.on("connection", (socket) => {
   console.log("New client connected");
-
+  socket.emit("getsRooms", Room.find({}));
   socket.on("joinRoom", ({ roomId, roomPassword, player2_Id }) => {
     Room.findById(roomId).then((data) => {
       if (data.password == roomPassword || !data.password) {
@@ -95,12 +95,6 @@ io.on("connection", (socket) => {
       });
   });
   // 클라이언트가 방 생성 요청을 보낼 때
-
-  socket.on("getRooms", () => {
-    Room.find({}).then((data) => {
-      io.emit("getsRooms".data);
-    });
-  });
 
   socket.on(
     "createRoom",
