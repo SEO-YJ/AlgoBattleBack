@@ -95,6 +95,13 @@ io.on("connection", (socket) => {
       });
   });
   // 클라이언트가 방 생성 요청을 보낼 때
+
+  socket.on("getRooms", () => {
+    Room.find({}).then((data) => {
+      io.emit("getsRooms".data);
+    });
+  });
+
   socket.on(
     "createRoom",
     ({ player1_id, name, password, level, algorithm }) => {
