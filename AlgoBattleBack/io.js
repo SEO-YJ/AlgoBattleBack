@@ -139,39 +139,39 @@ io.on("connection", (socket) => {
     io.to(roomId).emit("receiveGameInfo", state);
   });
 
-// updatedCard: 카드가 업데이트 될 때마다
-socket.on("updatedCard", (data) => {
-  // roomId로 된 room 애들에게 나를 제외한 모든 소켓에 보내는거
-  const { updatedCards, roomId } = data;
-  console.log(updatedCards);
-  // 이 소켓 이외의 모든 room 내의 클라이언트에게 전송
-  // socket.broadCast.to(roomId).emit("updatedCard", updatedCard);
-  socket.in(roomId).emit("updatedCard", updatedCards);
-});
-// finishGame: 게임 이후
-socket.on("finishGame", (data) => {
-  // roomId로 된 room 애들에게 나를 제외한 모든 소켓에 보내는거
-  const { winner, roomId } = data;
-  // 이 소켓 이외의 모든 room 내의 클라이언트에게 전송
-  io.sockets.in(roomId).emit("finishGame", winner);
-});
-// exitGame: 게임 중에 유저 나갈 경우
-socket.on("exitGame", (data) => {
-  const roomId = data;
-  // 나가기 버튼 누른애 room 나가기
-  socket.leave(roomId);
-  socket.broadCast.to(roomId).emit("exitGame", roomId); //TODO 얘도 undefined read 뜸 
-});
-// leaveGame: 상대가 나갈 경우
-socket.on("leaveGame", (data) => {
-  const roomId = data;
-  // 남아있는 애 room 나가기
-  socket.leave(roomId);
-});
+  // updatedCard: 카드가 업데이트 될 때마다
+  socket.on("updatedCard", (data) => {
+    // roomId로 된 room 애들에게 나를 제외한 모든 소켓에 보내는거
+    const { updatedCards, roomId } = data;
+    console.log(updatedCards);
+    // 이 소켓 이외의 모든 room 내의 클라이언트에게 전송
+    // socket.broadCast.to(roomId).emit("updatedCard", updatedCard);
+    socket.in(roomId).emit("updatedCard", updatedCards);
+  });
+  // finishGame: 게임 이후
+  socket.on("finishGame", (data) => {
+    // roomId로 된 room 애들에게 나를 제외한 모든 소켓에 보내는거
+    const { winner, roomId } = data;
+    // 이 소켓 이외의 모든 room 내의 클라이언트에게 전송
+    io.sockets.in(roomId).emit("finishGame", winner);
+  });
+  // exitGame: 게임 중에 유저 나갈 경우
+  socket.on("exitGame", (data) => {
+    const roomId = data;
+    // 나가기 버튼 누른애 room 나가기
+    socket.leave(roomId);
+    socket.broadCast.to(roomId).emit("exitGame", roomId); //TODO 얘도 undefined read 뜸 
+  });
+  // leaveGame: 상대가 나갈 경우
+  socket.on("leaveGame", (data) => {
+    const roomId = data;
+    // 남아있는 애 room 나가기
+    socket.leave(roomId);
+  });
 
 
   // 클라이언트가 방 나가기 요청을 보낼 때
-  socket.on("leaveRoom", (roomIndex) => {});
+  socket.on("leaveRoom", (roomIndex) => { });
 
   // 클라이언트가 연결을 끊을 때
   socket.on("disconnect", () => {
@@ -182,6 +182,34 @@ socket.on("leaveGame", (data) => {
     // console.log(data);
     io.to(data.roomId).emit("receive_ready_data", data);
   });
+
+  // 클라이언트가 방 나가기 요청을 보낼 때
+  socket.on("sendLeavePlayer1", ({ roomId, player }) => {
+    Room.findByIdAndDelete(roomId).then(() => {
+      Room.find().then((data) => {
+        io.emit("getsRooms", data);
+      });
+    });
+    io.to(roomId).emit("receiveLeavePlayer1", player);
+    socket.leave(roomId);
+  });
+
+  socket.on("sendLeavePlayer2", ({ roomId, player }) => {
+    Room.findByIdAndUpdate(roomId, { player2: null, status: "대기중" }).then(
+      () => {
+        Room.findById(roomId).then((data) => {
+          io.to(roomId).emit("getRoom", data);
+        });
+        Room.find().then((data) => {
+          io.emit("getsRooms", data);
+        });
+      }
+    );
+
+    io.to(roomId).emit("receiveLeavePlayer2", player);
+    socket.leave(roomId);
+  });
+
 });
 ////
 
