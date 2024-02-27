@@ -160,7 +160,7 @@ io.on("connection", (socket) => {
     const roomId = data;
     // 나가기 버튼 누른애 room 나가기
     socket.leave(roomId);
-    socket.broadCast.to(roomId).emit("exitGame", roomId); //TODO 얘도 undefined read 뜸 
+    io.to(roomId).emit("exitGame", roomId); //TODO 얘도 undefined read 뜸
   });
   // leaveGame: 상대가 나갈 경우
   socket.on("leaveGame", (data) => {
@@ -169,9 +169,8 @@ io.on("connection", (socket) => {
     socket.leave(roomId);
   });
 
-
   // 클라이언트가 방 나가기 요청을 보낼 때
-  socket.on("leaveRoom", (roomIndex) => { });
+  socket.on("leaveRoom", (roomIndex) => {});
 
   // 클라이언트가 연결을 끊을 때
   socket.on("disconnect", () => {
@@ -209,7 +208,6 @@ io.on("connection", (socket) => {
     io.to(roomId).emit("receiveLeavePlayer2", player);
     socket.leave(roomId);
   });
-
 });
 ////
 
