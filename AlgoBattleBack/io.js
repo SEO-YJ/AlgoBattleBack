@@ -59,6 +59,9 @@ io.on("connection", (socket) => {
   socket.on("joinRoom", (roomId) => {
     console.log(roomId);
     socket.join(roomId);
+    //TODO 추후 삭제
+    // socket.join(roomId);
+
     Room.findById(roomId).then((data) => {
       console.log(data);
       socket.to(roomId).emit("getRoom", data);
@@ -142,7 +145,7 @@ io.on("connection", (socket) => {
             player2: null,
           };
 
-          console.log(newRoomData);
+          // console.log(newRoomData);
 
           // 새로운 게임 데이터 생성
           Room.create(newRoomData)
@@ -173,6 +176,11 @@ io.on("connection", (socket) => {
   // 클라이언트가 연결을 끊을 때
   socket.on("disconnect", () => {
     console.log("Client disconnected");
+  });
+
+  socket.on("send_ready_data", (data) => {
+    // console.log(data);
+    io.to(data.roomId).emit("receive_ready_data", data);
   });
 });
 ////
