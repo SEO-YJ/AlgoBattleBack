@@ -140,23 +140,29 @@ io.on("connection", (socket) => {
   });
 
   // 클라이언트가 방 나가기 요청을 보낼 때
-  socket.on("sendLeavePlayer1", ({ roomId }) => {
+  socket.on("sendLeavePlayer1", ({ roomId, player }) => {
     Room.findByIdAndDelete(roomId).then(() => {
       Room.find().then((data) => {
         io.emit("getsRooms", data);
       });
     });
-    io.to(roomId).to("receiveLeavePlayer1", roomId);
+    io.to(roomId).emit("receiveLeavePlayer1", player);
     socket.leave(roomId);
   });
 
-  socket.on("sendLeavePlayer2", ({ roomId }) => {
-    Room.findByIdAndUpdate(roomId, { status: "대기중" }).then(() => {
-      Room.find().then((data) => {
-        io.emit("getsRooms", data);
-      });
-    });
-    io.to(roomId).to("receiveLeavePlayer2", roomId);
+  socket.on("sendLeavePlayer2", ({ roomId, player }) => {
+    Room.findByIdAndUpdate(roomId, { player2: null, status: "대기중" }).then(
+      () => {
+        Room.findById(roomId).then((data) => {
+          io.to(roomId).emit("getRoom", data);
+        });
+        Room.find().then((data) => {
+          io.emit("getsRooms", data);
+        });
+      }
+    );
+
+    io.to(roomId).emit("receiveLeavePlayer2", player);
     socket.leave(roomId);
   });
 
