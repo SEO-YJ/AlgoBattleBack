@@ -140,7 +140,25 @@ io.on("connection", (socket) => {
   });
 
   // 클라이언트가 방 나가기 요청을 보낼 때
-  socket.on("leaveRoom", (roomIndex) => {});
+  socket.on("sendLeavePlayer1", ({ roomId }) => {
+    Room.findByIdAndDelete(roomId).then(() => {
+      Room.find().then((data) => {
+        io.emit("getsRooms", data);
+      });
+    });
+    io.to(roomId).to("receiveLeavePlayer1", roomId);
+    socket.leave(roomId);
+  });
+
+  socket.on("sendLeavePlayer2", ({ roomId }) => {
+    Room.findByIdAndUpdate(roomId, { status: "대기중" }).then(() => {
+      Room.find().then((data) => {
+        io.emit("getsRooms", data);
+      });
+    });
+    io.to(roomId).to("receiveLeavePlayer2", roomId);
+    socket.leave(roomId);
+  });
 
   // 클라이언트가 연결을 끊을 때
   socket.on("disconnect", () => {
