@@ -155,6 +155,33 @@ router.get("/:userid/solvedStatus", async (req, res, next) => {
   }
 });
 
+// User 승수, 패수 업데이트
+router.put("/updateResult", async (req, res) => {
+  const { user1, user2, result } = req.body;
+  try {
+    // 결과에 따라 유저의 승패 기록 업데이트
+    if (result === "1") {
+      // User1이 이긴 경우
+      await User.findOneAndUpdate({ handle: user1 }, { $inc: { winCount: 1 } });
+      await User.findOneAndUpdate(
+        { handle: user2 },
+        { $inc: { loseCount: 1 } }
+      );
+    } else if (result === "2") {
+      await User.findOneAndUpdate({ handle: user2 }, { $inc: { winCount: 1 } });
+      await User.findOneAndUpdate(
+        { handle: user1 },
+        { $inc: { loseCount: 1 } }
+      );
+    }
+    res.status(200).send("User result updated successfully");
+  } catch (error) {
+    console.error("Error updating user result:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
 module.exports = router;
 
 function arraysAreEqual(arr1, arr2) {
