@@ -56,44 +56,43 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("getRoom", ({ roomId }) => {
+  socket.on("joinRoom", (roomId) => {
+    console.log(roomId);
+    socket.join(roomId);
     Room.findById(roomId).then((data) => {
-      socket.emit("getRoom", data);
+      console.log(data);
+      socket.to(roomId).emit("getRoom", data);
     });
   });
+  socket.on("ready", (roomId, player, key) => {
+    console.log(player);
+    socket.to(roomId).emit("ready", player, key);
+  });
 
-  socket.on("joinRoom", ({ roomId, roomPassword, player2_Id, handle }) => {
+  // socket.on("getRoom", ({ roomId }) => {
+  //   Room.findById(roomId).then((data) => {
+  //     socket.emit("getRoom", data);
+  //   });
+  // });
+
+  socket.on("enterPlayer", ({ roomId, roomPassword, player2_Id, handle }) => {
     Room.findById(roomId).then((data) => {
       if (data.password == roomPassword || !data.password) {
         // console.log(data);
-        Room.findById(roomId)
-          .then((data2) => {
-            if(data2.player2.toObject() === null) {
-              Room.findByIdAndUpdate(roomId, {
-                player2: {
-                  _id : player2_Id,
-                  handle : handle
-                },
-                status: "준비중",
-              }).then((data) => {
-                Room.find({}).then((data) => {
-                  io.emit("getsRooms", data);
-                });
-              });
-              socket.join(roomId);
-            } else {
-              socket.emit("");
-            }
-            //방 업데이트 정보 보내기
-          })
-          .catch((err) => {
-            console.log(err);
-            io.emit("gameRoom", err);
+        if (data.player2.toObject() == null) {
+          Room.findByIdAndUpdate(roomId, {
+            player2: {
+              _id: player2_Id,
+              handle: handle,
+            },
+            status: "준비중",
+          }).then((data) => {
+            Room.find().then((data) => {
+              io.emit("getsRooms", data);
+              socket.emit("getRoom", roomId);
+            });
           });
-        socket.emit("joinRoomreply", "방입장성공");
-      } else {
-        console.log("비밀번호 불일치");
-        socket.emit("joinRoomreply", "비밀번호 불일치");
+        }
       }
     });
   });
@@ -149,8 +148,7 @@ io.on("connection", (socket) => {
           Room.create(newRoomData)
             .then((room) => {
               // 게임 데이터 생성 완료 후 방 정보를 반환
-              socket.join(room._id);
-              // res.json(room);
+              // socket.join(room._id);
               Room.find({}).then((data) => {
                 io.emit("getsRooms", data);
               });

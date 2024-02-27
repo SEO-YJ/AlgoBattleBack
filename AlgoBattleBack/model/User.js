@@ -15,9 +15,11 @@ const userSchema = new mongoose.Schema({
   },
   winCount: {
     type: Number,
+    default: 0,
   },
   loseCount: {
     type: Number,
+    default: 0,
   },
   solvedProblemsList: {
     type: [],
