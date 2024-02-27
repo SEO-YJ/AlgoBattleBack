@@ -25,8 +25,8 @@ router.get("/:level?", async function (req, res, next) {
     const user1 = req.query.body.user1;
     const user2 = req.query.body.user2;
 
-    console.log(req.query.body);
-    console.log(req.query);
+    // console.log("body : ", req.query.body);
+    // console.log(req.query);
     // console.log(req.query.eliase);
     // console.log(user1);
     if (user1 && user2) {

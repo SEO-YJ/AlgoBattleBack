@@ -102,7 +102,7 @@ io.on("connection", (socket) => {
             password: password !== undefined ? password : null,
             level: level,
             algorithm: algorithm,
-            status: "게임전",
+            status: "대기중",
             player1: player1Data, // 방장의 사용자 정보 객체를 저장
             player2: null,
           };
