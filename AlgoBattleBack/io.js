@@ -208,6 +208,17 @@ io.on("connection", (socket) => {
     io.to(roomId).emit("receiveLeavePlayer2", player);
     socket.leave(roomId);
   });
+
+  socket.on("sendChangeAlgo", ({ roomId, level, algorithm }) => {
+    Room.findByIdAndUpdate(roomId, { level: level, algorithm: algorithm }).then(
+      () => {
+        Room.find({}).then((data) => {
+          io.emit("getsRooms", data);
+        });
+        io.to(roomId).emit("receiveChangeAlgo", roomId);
+      }
+    );
+  });
 });
 ////
 
