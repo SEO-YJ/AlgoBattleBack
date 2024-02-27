@@ -56,15 +56,13 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("joinRoom", (roomId) => {
+  socket.on("joinRoom", ({roomId}) => {
     console.log(roomId);
     socket.join(roomId);
-    //TODO 추후 삭제
-    // socket.join(roomId);
 
     Room.findById(roomId).then((data) => {
       console.log(data);
-      socket.to(roomId).emit("getRoom", data);
+      io.to(roomId).emit("getRoom", data);
     });
   });
   socket.on("ready", (roomId, player, key) => {
@@ -92,7 +90,7 @@ io.on("connection", (socket) => {
           }).then((data) => {
             Room.find().then((data) => {
               io.emit("getsRooms", data);
-              socket.emit("getRoom", roomId);
+              socket.emit("enterRoomId", roomId);
             });
           });
         }
