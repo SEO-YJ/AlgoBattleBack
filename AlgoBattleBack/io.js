@@ -21,11 +21,11 @@ io.on("connection", (socket) => {
   });
 
   socket.on("joinRoom", ({ roomId }) => {
-    console.log(roomId);
+    // console.log(roomId);
     socket.join(roomId);
 
     Room.findById(roomId).then((data) => {
-      console.log(data);
+      // console.log(data);
       io.to(roomId).emit("getRoom", data);
     });
   });
@@ -117,7 +117,7 @@ io.on("connection", (socket) => {
               Room.find({}).then((data) => {
                 io.emit("getsRooms", data);
               });
-              console.log(room);
+              // console.log(room);
               socket.emit("getRoomId", room._id);
             })
             .catch((err) => {
@@ -215,7 +215,9 @@ io.on("connection", (socket) => {
         Room.find({}).then((data) => {
           io.emit("getsRooms", data);
         });
-        io.to(roomId).emit("receiveChangeAlgo", roomId);
+        Room.findById(roomId).then((data) => {
+          io.to(roomId).emit("getRoom", data);
+        })
       }
     );
   });
