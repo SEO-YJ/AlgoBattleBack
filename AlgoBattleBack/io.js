@@ -2,6 +2,7 @@ const { Server } = require("socket.io");
 const Room = require("./model/Room");
 const User = require("./model/User");
 const { disconnect } = require("mongoose");
+
 const io = new Server({
   cors: {
     origin: "http://localhost:5173",
@@ -10,7 +11,7 @@ const io = new Server({
 });
 
 io.on("connection", (socket) => {
-  console.log("New client connected");
+  console.log("새로운 클라이언트 연결");
 
   //getsRooms
   socket.on("getRooms", () => {
@@ -62,8 +63,6 @@ io.on("connection", (socket) => {
     });
   });
 
-  // socket.on("outRoom1", { room });
-  // socket.on("outRoom1", { room });
   socket.on("outRoom2", ({ roomId, player2Id }) => {
     Room.findOneAndUpdate({ _id: roomId }, { player2: null })
       .then((data) => {
@@ -148,13 +147,15 @@ io.on("connection", (socket) => {
     // socket.broadCast.to(roomId).emit("updatedCard", updatedCard);
     socket.in(roomId).emit("updatedCard", updatedCards);
   });
+
   // finishGame: 게임 이후
   socket.on("finishGame", (data) => {
-    // roomId로 된 room 애들에게 나를 제외한 모든 소켓에 보내는거
+    // roomId로 된 room 애들에게 나를 포함한 모든 소켓에 보내는거
     const { winner, roomId } = data;
-    // 이 소켓 이외의 모든 room 내의 클라이언트에게 전송
+    // 이 소켓을 포함하여 모든 room 내의 클라이언트에게 전송
     io.sockets.in(roomId).emit("finishGame", winner);
   });
+
   // exitGame: 게임 중에 유저 나갈 경우
   socket.on("exitGame", (data) => {
     const roomId = data;
@@ -162,6 +163,7 @@ io.on("connection", (socket) => {
     socket.leave(roomId);
     io.to(roomId).emit("exitGame", roomId); //TODO 얘도 undefined read 뜸
   });
+
   // leaveGame: 상대가 나갈 경우
   socket.on("leaveGame", (data) => {
     const roomId = data;
@@ -174,7 +176,7 @@ io.on("connection", (socket) => {
 
   // 클라이언트가 연결을 끊을 때
   socket.on("disconnect", () => {
-    console.log("Client disconnected");
+    console.log("클라이언트 연결 종료");
   });
 
   socket.on("send_ready_data", (data) => {
@@ -217,7 +219,7 @@ io.on("connection", (socket) => {
         });
         Room.findById(roomId).then((data) => {
           io.to(roomId).emit("getRoom", data);
-        })
+        });
       }
     );
   });

@@ -21,6 +21,8 @@ app.set("port", port);
  */
 
 var server = http.createServer(app);
+
+// Socket 서버와 HTTP 서버 연결
 io.attach(server);
 
 /**
